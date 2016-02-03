@@ -3,7 +3,7 @@
 set -o errexit
 set -o nounset
 
-readonly NATURAL_REGEX='^[0-9]+$'
+readonly NATURAL_REGEX="^[0-9]+$"
 
 readonly DEFAULT_MACHINE_NAME="Test"
 readonly DEFAULT_DRIVE_SIZE=3000
