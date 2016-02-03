@@ -11,7 +11,7 @@ readonly DEFAULT_MEMORY_SIZE=1024
 
 echo Machine name, default ${DEFAULT_MACHINE_NAME}:
 read MACHINE_NAME
-if [ "${MACHINE_NAME}" = "" ]; then
+if [[ -z "${MACHINE_NAME}" ]]; then
 	MACHINE_NAME=${DEFAULT_MACHINE_NAME}
 fi
 
@@ -21,7 +21,7 @@ do
 	read MACHINE_MEMORY
 	if [[ "${MACHINE_MEMORY}" =~ $NATURAL_REGEX ]]; then
 		break
-	elif [ "${MACHINE_MEMORY}" = "" ]; then
+	elif [[ -z "${MACHINE_MEMORY}" ]]; then
 		MACHINE_MEMORY=$DEFAULT_MEMORY_SIZE
 		break
 	fi
@@ -33,7 +33,7 @@ do
 	read DRIVE_SIZE
 	if [[ "${DRIVE_SIZE}" =~ $NATURAL_REGEX ]]; then
 		break
-	elif [ "${DRIVE_SIZE}" = "" ]; then
+	elif [[ -z "${DRIVE_SIZE}" ]]; then
 		DRIVE_SIZE=$DEFAULT_DRIVE_SIZE
 		break
 	fi
