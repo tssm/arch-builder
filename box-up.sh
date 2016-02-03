@@ -51,4 +51,3 @@ VBoxManage modifyvm "${MACHINE_NAME}" --boot1 disk
 VBoxManage modifyvm "${MACHINE_NAME}" --boot2 none
 VBoxManage modifyvm "${MACHINE_NAME}" --boot3 none
 VBoxManage modifyvm "${MACHINE_NAME}" --boot4 none
-# TODO: Add a bridged network
