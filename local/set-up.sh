@@ -8,7 +8,7 @@ while :
 do
 	echo "Enter hostname:"
 	read HOSTNAME
-	if [[ -z "${HOSTNAME}" ]]; then
+	if [[ -n "${HOSTNAME}" ]]; then
 		echo "${HOSTNAME}" > /etc/hostname
 		break
 	fi
@@ -39,7 +39,7 @@ while :
 do
 	echo "Enter user name:"
 	read USERNAME
-	if [[ -z "${USERNAME}" ]]; then
+	if [[ -n "${USERNAME}" ]]; then
 		useradd -m -G wheel -s /bin/bash ${USERNAME}
 		passwd ${USERNAME}
 		break
