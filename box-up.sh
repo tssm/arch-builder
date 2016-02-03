@@ -4,7 +4,6 @@ set -o errexit
 set -o nounset
 
 readonly NATURAL_REGEX='^[0-9]+$'
-readonly OS_TYPE="ArchLinux_64"
 
 readonly DEFAULT_MACHINE_NAME="Test"
 readonly DEFAULT_DRIVE_SIZE=3000
@@ -42,7 +41,7 @@ done
 
 readonly DRIVE_PATH="$HOME/VirtualBox VMs/${MACHINE_NAME}/${MACHINE_NAME}"
 
-VBoxManage createvm --name "${MACHINE_NAME}" --ostype "${OS_TYPE}" --register
+VBoxManage createvm --name "${MACHINE_NAME}" --ostype ArchLinux_64 --register
 VBoxManage createmedium disk --filename "${DRIVE_PATH}" --size "${DRIVE_SIZE}" --variant Fixed
 VBoxManage storagectl "${MACHINE_NAME}" --name SATA --add sata --controller IntelAHCI
 VBoxManage storageattach "${MACHINE_NAME}" --storagectl SATA --port 0 --type hdd --medium "${DRIVE_PATH}.vdi"
