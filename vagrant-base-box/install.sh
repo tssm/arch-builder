@@ -36,7 +36,7 @@ mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
 
 echo "Installing..."
-PACKAGES="bash dhcpcd dosfstools e2fsprogs filesystem iproute2 iputils linux-lts logrotate neovim nftables openssh pacman pciutils procps-ng psmisc rsync sed sudo"
+PACKAGES="bash dosfstools e2fsprogs filesystem iproute2 iputils linux-lts logrotate neovim nftables openssh pacman pciutils procps-ng psmisc rsync sed sudo"
 
 readonly DEVELOPMENT="Development"
 readonly PRODUCTION="Production"

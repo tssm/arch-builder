@@ -57,6 +57,9 @@ echo "[Network]" >> /etc/systemd/network/10-default.network
 echo "DHCP=yes" >> /etc/systemd/network/10-default.network
 
 systemctl enable systemd-networkd
+systemctl enable systemd-resolved
+rm /etc/resolv.conf
+ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 
 # Boot loader
 bootctl --path=/boot install
