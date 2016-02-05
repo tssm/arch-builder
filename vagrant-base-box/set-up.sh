@@ -28,9 +28,9 @@ echo "hvc0" >> /etc/securetty
 
 # Sudoers
 echo "Defaults editor=/usr/bin/nvim" > /etc/sudoers
+echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 echo "root ALL=(ALL) ALL" >> /etc/sudoers
 echo "${DEFAULT_USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 
 # Firewall
 systemctl enable nftables
