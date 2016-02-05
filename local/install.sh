@@ -9,7 +9,7 @@ echo "Partitioning..."
 readonly ESP_SIZE=102
 
 readonly ALIGNMENT_OFFSET_FILE="/sys/block/sda/queue/alignment_offset"
-if [ -f "${ALIGNMENT_OFFSET_FILE}" ]; then
+if [[ -f "${ALIGNMENT_OFFSET_FILE}" ]]; then
 	readonly ALIGNMENT_OFFSET=$(cat ${ALIGNMENT_OFFSET_FILE})
 	readonly OPTIMAL_IO_SIZE=$(cat /sys/block/sda/queue/optimal_io_size)
 	readonly PHYSICAL_BLOCK_SIZE=$(cat /sys/block/sda/queue/physical_block_size)
