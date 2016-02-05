@@ -69,6 +69,7 @@ echo "blacklist i2c_piix4" > /etc/modprobe.d/i2c_piix4.conf
 
 # Network
 echo "[Match]" > /etc/systemd/network/10-default.network
+echo "Name=en*" >> /etc/systemd/network/10-default.network
 echo "[Network]" >> /etc/systemd/network/10-default.network
 echo "DHCP=yes" >> /etc/systemd/network/10-default.network
 
