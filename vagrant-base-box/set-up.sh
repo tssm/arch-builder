@@ -3,17 +3,6 @@
 set -o errexit
 set -o nounset
 
-# Hostname
-while :
-do
-	echo "Enter hostname:"
-	read HOSTNAME
-	if [[ -n "${HOSTNAME}" ]]; then
-		echo "${HOSTNAME}" > /etc/hostname
-		break
-	fi
-done
-
 # Locales
 echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
 locale-gen
@@ -27,28 +16,21 @@ echo "FallbackNTP=0.pool.ntp.org 1.pool.ntp.org 0.fr.pool.ntp.org" >> /etc/syste
 
 systemctl enable systemd-timesyncd
 
-# Sudoers
-echo "Defaults editor=/usr/bin/nvim" > /etc/sudoers
-echo "root ALL=(ALL) ALL" >> /etc/sudoers
-echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
-
 # Users
-passwd
-
-while :
-do
-	echo "Enter user name:"
-	read USERNAME
-	if [[ -n "${USERNAME}" ]]; then
-		useradd -m -G wheel -s /bin/bash ${USERNAME}
-		passwd ${USERNAME}
-		break
-	fi
-done
+readonly DEFAULT_USER="vagrant"
+useradd -m -G wheel -s /bin/bash "${DEFAULT_USER}"
+echo "${DEFAULT_USER}" | passwd "${DEFAULT_USER}" --stdin
+echo "${DEFAULT_USER}" | passwd --stdin
 
 echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su
 echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su-l
 echo "hvc0" >> /etc/securetty
+
+# Sudoers
+echo "Defaults editor=/usr/bin/nvim" > /etc/sudoers
+echo "root ALL=(ALL) ALL" >> /etc/sudoers
+echo "${DEFAULT_USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 
 # Firewall
 systemctl enable nftables
@@ -57,6 +39,7 @@ systemctl enable nftables
 echo "AllowGroups wheel" >> /etc/ssh/sshd_config
 echo "PermitRootLogin no" >> /etc/ssh/sshd_config
 echo "#PasswordAuthentication no" >> /etc/ssh/sshd_config
+echo "UseDNS no" >> /etc/ssh/sshd_config
 
 systemctl enable sshd.socket
 
