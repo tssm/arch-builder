@@ -19,8 +19,8 @@ systemctl enable systemd-timesyncd
 # Users
 readonly DEFAULT_USER="vagrant"
 useradd -m -G wheel -s /bin/bash "${DEFAULT_USER}"
-echo "${DEFAULT_USER}" | passwd "${DEFAULT_USER}" --stdin
-echo "${DEFAULT_USER}" | passwd --stdin
+echo "${DEFAULT_USER}:${DEFAULT_USER}" | chpasswd
+echo "root:${DEFAULT_USER}" | chpasswd
 
 echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su
 echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su-l
