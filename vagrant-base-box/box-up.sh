@@ -7,7 +7,7 @@ readonly NATURAL_REGEX="^[0-9]+$"
 
 readonly DEFAULT_MACHINE_NAME="Test"
 readonly DEFAULT_DRIVE_SIZE=3000
-readonly DEFAULT_MEMORY_SIZE=1024
+readonly DEFAULT_MEMORY_SIZE=512
 
 echo Machine name, default ${DEFAULT_MACHINE_NAME}:
 read MACHINE_NAME
