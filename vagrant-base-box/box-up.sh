@@ -47,6 +47,7 @@ VBoxManage storagectl "${MACHINE_NAME}" --name SATA --add sata --controller Inte
 VBoxManage storageattach "${MACHINE_NAME}" --storagectl SATA --port 0 --type hdd --medium "${DRIVE_PATH}.vdi"
 VBoxManage modifyvm "${MACHINE_NAME}" --firmware efi
 VBoxManage modifyvm "${MACHINE_NAME}" --memory "${MACHINE_MEMORY}"
+VBoxManage modifyvm "${MACHINE_NAME}" --nictype1 virtio
 VBoxManage modifyvm "${MACHINE_NAME}" --rtcuseutc on
 VBoxManage modifyvm "${MACHINE_NAME}" --boot1 disk
 VBoxManage modifyvm "${MACHINE_NAME}" --boot2 none
