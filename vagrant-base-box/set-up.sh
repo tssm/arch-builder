@@ -43,6 +43,7 @@ echo "UseDNS no" >> /etc/ssh/sshd_config
 
 mkdir /home/${DEFAULT_USER}/.ssh
 curl https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub -o /home/${DEFAULT_USER}/.ssh/authorized_keys
+chown -R ${DEFAULT_USER}:${DEFAULT_USER} /home/${DEFAULT_USER}/.ssh
 chmod 0600 /home/${DEFAULT_USER}/.ssh/authorized_keys
 chmod 0700 /home/${DEFAULT_USER}/.ssh
 
