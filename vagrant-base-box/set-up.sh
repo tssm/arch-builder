@@ -70,6 +70,11 @@ ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 # VirtualBox
 systemctl enable vboxservice
 
+# Halt command for Vagrant
+echo "#!/usr/bin/env bash" > /usr/bin/shutdown
+echo "sudo systemctl poweroff" >> /usr/bin/shutdown
+chmod +x /usr/bin/shutdown
+
 # Boot loader
 bootctl --path=/boot install
 
