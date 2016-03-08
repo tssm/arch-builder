@@ -43,7 +43,7 @@ readonly PRODUCTION="Production"
 select ENVIRONMENT in ${DEVELOPMENT} ${PRODUCTION}; do
 	case "${ENVIRONMENT}" in
 		"${DEVELOPMENT}")
-			PACKAGES+=" virtualbox-guest-utils"
+			PACKAGES+=" linux-lts-headers virtualbox-guest-utils-nox"
 			break
 			;;
 		"${PRODUCTION}")
