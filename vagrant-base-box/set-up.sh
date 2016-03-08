@@ -67,6 +67,9 @@ systemctl enable systemd-resolved
 rm /etc/resolv.conf
 ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 
+# VirtualBox
+systemctl enable vboxservice
+
 # Boot loader
 bootctl --path=/boot install
 

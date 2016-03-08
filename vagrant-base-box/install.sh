@@ -36,25 +36,7 @@ mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
 
 echo "Installing..."
-PACKAGES="bash dosfstools e2fsprogs filesystem iproute2 iputils linux-lts logrotate neovim nftables openssh pacman pciutils procps-ng psmisc rsync sed sudo"
-
-readonly DEVELOPMENT="Development"
-readonly PRODUCTION="Production"
-select ENVIRONMENT in ${DEVELOPMENT} ${PRODUCTION}; do
-	case "${ENVIRONMENT}" in
-		"${DEVELOPMENT}")
-			PACKAGES+=" linux-lts-headers virtualbox-guest-utils-nox"
-			break
-			;;
-		"${PRODUCTION}")
-			break
-			;;
-		*)
-			;;
-	esac
-done
-
-pacstrap /mnt ${PACKAGES}
+pacstrap /mnt bash dosfstools e2fsprogs filesystem iproute2 iputils linux-lts linux-lts-headers logrotate neovim nftables openssh pacman pciutils procps-ng psmisc rsync sed sudo virtualbox-guest-utils-nox
 
 echo "Now set up this thing!"
 genfstab -pL /mnt >> /mnt/etc/fstab
