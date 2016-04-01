@@ -26,7 +26,6 @@ echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su
 echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su-l
 echo "hvc0" >> /etc/securetty
 
-# Sudoers
 echo "Defaults editor=/usr/bin/nvim" > /etc/sudoers
 echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 echo "root ALL=(ALL) ALL" >> /etc/sudoers
