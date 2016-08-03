@@ -38,7 +38,7 @@ pacman -Rns --noconfirm dhcpcd\
 # TODO: Replace interactive with command line arguments
 
 # Hostname
-while : 
+while :
 do
 	echo "Enter hostname:"
 	read HOSTNAME
