@@ -102,10 +102,18 @@ echo "root ALL=(ALL) ALL" >> /etc/sudoers
 echo "%wheel ALL=(root) ALL" >> /etc/sudoers
 
 # SSH
-echo "AllowGroups wheel" >> /etc/ssh/sshd_config
+echo "AllowGroups wheel" > /etc/ssh/sshd_config
+echo "AuthorizedKeysFile .ssh/authorized_keys" >> /etc/ssh/sshd_config
+echo "PrintLastLog yes" >> /etc/ssh/sshd_config
+
+echo "Protocol 2" >> /etc/ssh/sshd_config
+echo "ChallengeResponseAuthentication no" >> /etc/ssh/sshd_config
 echo "PermitRootLogin no" >> /etc/ssh/sshd_config
-echo "#PasswordAuthentication no" >> /etc/ssh/sshd_config
-echo "UseDNS no" >> /etc/ssh/sshd_config
+echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+echo "StrictModes yes" >> /etc/ssh/sshd_config
+
+echo "UsePAM yes" >> /etc/ssh/sshd_config
+echo "PrintMotd no" >> /etc/ssh/sshd_config # PAM does that
 
 # Services
 systemctl enable logrotate
