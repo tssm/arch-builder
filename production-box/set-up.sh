@@ -70,6 +70,8 @@ done
 # Users
 passwd
 
+useradd --system --create-home --user-group --shell /usr/bin/nologin backups
+
 while :
 do
 	echo "Enter username:"
