@@ -83,6 +83,14 @@ do
 	fi
 done
 
+mkdir /home/${USERNAME}/.ssh
+cp key.pub /home/${USERNAME}/.ssh/authorized_keys
+chmod 400 /home/${USERNAME}/.ssh/authorized_keys
+chmod 700 /home/${USERNAME}/.ssh
+chown ${USERNAME}: -R /home/${USERNAME}/.ssh
+chattr +i /home/${USERNAME}/.ssh/authorized_keys
+chattr +i /home/${USERNAME}/.ssh
+
 echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su
 echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su-l
 echo "hvc0" > /etc/securetty
