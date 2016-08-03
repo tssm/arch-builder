@@ -3,8 +3,39 @@
 set -o errexit
 set -o nounset
 
-pacman -Syu git linux-lts neovim nftables python-neovim rsync syslinux xclip --noconfirm
-pacman -Rns dhcpcd diffutils file grub jfsutils licenses lvm2 mdadm nano netctl pcmciautils reiserfsprogs s-nail parted tar usbutils vi which xfsprogs --noconfirm
+# TODO: Make a explicit list of needed packages an remove every package that appears on -Qet but not in that list
+pacman -Syu --noconfirm git\
+	linux-lts\
+	neovim\
+	nftables\
+	python-neovim\
+	rsync\
+	syslinux\
+	xclip
+pacman -Rns --noconfirm dhcpcd\
+	diffutils\
+	file\
+	inetutils\
+	grub\
+	haveged\
+	jfsutils\
+	licenses\
+	linux\
+	lvm2\
+	mdadm\
+	nano\
+	netctl\
+	pcmciautils\
+	reiserfsprogs\
+	s-nail\
+	parted\
+	tar\
+	usbutils\
+	vi\
+	which\
+	xfsprogs
+
+# TODO: Replace interactive with command line arguments
 
 # Hostname
 while : 
