@@ -59,7 +59,7 @@ do
 	read TIME_ZONE
 	echo "Enter time sub-zone:"
 	read TIME_SUB_ZONE
-	if [[ -n "${TIME_ZONE}" && -n "${TIME_SUB_ZONE}" ]]
+	if [[ -n "${TIME_ZONE}" && -n "${TIME_SUB_ZONE}" ]]; then
 		timedatectl set-timezone "${TIME_ZONE}"/"${TIME_SUB_ZONE}"
 		timedatectl set-ntp true
 		systemctl enable systemd-timesyncd
