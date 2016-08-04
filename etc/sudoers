@@ -1,0 +1,6 @@
+Defaults env_reset
+Defaults editor=/usr/bin/nvim
+Defaults !visiblepw
+
+root ALL=(ALL) ALL
+%wheel ALL=(root) ALL

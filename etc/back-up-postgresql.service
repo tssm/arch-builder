@@ -1,0 +1,11 @@
+[Unit]
+Description=Back up PostgreSQL
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/back-up-postgresql 
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=Back Up PostgreSQL
+User=backups
+Group=backups
