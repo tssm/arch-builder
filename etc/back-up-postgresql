@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Source: depesz.com/2013/09/11/how-to-make-backups-of-postgresql/
+
 set -o errexit
 set -o nounset
 
