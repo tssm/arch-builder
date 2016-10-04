@@ -10,10 +10,21 @@ declare -r current_backup_dir=${backups_dir}/$(date +%Y-%m-%d)
 
 mkdir -p "${current_backup_dir}" && cd "${current_backup_dir}"
 
-psql postgres --quiet --no-align --tuples-only --no-psqlrc \
-	-c "select datname from pg_database where datallowconn" | \
-	xargs --delimiter='\n' -I{} --max-procs=2 \
-	pg_dump --data-only --no-owner --no-privileges --file {}.sql {}
+psql postgres \
+	--quiet \
+	--no-align \
+	--tuples-only \
+	--no-psqlrc \
+	--command "select datname from pg_database where datallowconn" | \
+	xargs \
+		--delimiter '\n' \
+		-I{} \
+		--max-procs 2 \
+		pg_dump \
+			--data-only \
+			--no-owner \
+			--no-privileges \
+			--file {}.sql {}
 
 cd "${backups_dir}"
 find . -mindepth 2 \
