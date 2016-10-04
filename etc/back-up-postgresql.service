@@ -3,7 +3,7 @@ Description=Back up PostgreSQL
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/back-up-postgresql
+ExecStart=/home/backups/bin/back-up-postgresql
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=Back Up PostgreSQL
