@@ -10,12 +10,15 @@ useradd --system\
 	--user-group\
 	--shell /usr/bin/nologin backups
 
+chmod 750 /home/backups
+
 while :
 do
 	echo "Enter username:"
 	read USERNAME
 	if [[ -n "${USERNAME}" ]]; then
 		useradd -m -G wheel -s /bin/bash ${USERNAME}
+		gpasswd -a "${USERNAME}" backups
 		passwd ${USERNAME}
 		break
 	fi
