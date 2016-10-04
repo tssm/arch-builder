@@ -1,4 +1,8 @@
+--- Remove default privileges
+
 revoke all privileges on all tables in schema public from public;
+
+--- Backups
 
 create role backups login;
 
