@@ -5,6 +5,7 @@ set -o nounset
 
 # TODO: Make a explicit list of needed packages an remove every package that appears on -Qet but not in that list
 pacman -Syu --noconfirm git\
+	gptfdisk\
 	linux-lts\
 	neovim\
 	nftables\

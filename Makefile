@@ -43,8 +43,7 @@ securetty:
 
 .PHONY: services
 services:
-	systemctl enable logrotate
-	systemctl start logrotate
+	systemctl enable logrotate.timer
 	systemctl enable nftables
 	systemctl enable systemd-timesyncd
 	systemctl set-default multi-user.target
