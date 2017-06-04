@@ -66,13 +66,13 @@ systemd-boot:
 
 # Main stuff
 
-.PHONY: new-arch
-newarch:
-	sh bin/new-arch.sh
+.PHONY: install
+install:
+	sh bin/install.sh
 
-.PHONY: new-box
-new-box:
-	sh bin/new-box.sh
+.PHONY: box
+box:
+	sh bin/box.sh
 
 .PHONY: production
 production: hostname locales packages pam securetty services sshd sudoers syslinux time users
