@@ -76,6 +76,7 @@ box:
 .PHONY: production
 production: hostname locales packages pam securetty services sshd sudoers syslinux time users
 	timedatectl set-ntp true
+	echo "Done!"
 
 .PHONY: development
 development: locales network pam securetty services shutdown sshd sudoers systemd-boot time
