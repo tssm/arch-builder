@@ -45,6 +45,7 @@ VBoxManage createvm --name "${MACHINE_NAME}" --ostype ArchLinux_64 --register
 VBoxManage createmedium disk --filename "${DRIVE_PATH}" --size "${DRIVE_SIZE}" --variant Standard
 VBoxManage storagectl "${MACHINE_NAME}" --name SATA --add sata --controller IntelAHCI
 VBoxManage storageattach "${MACHINE_NAME}" --storagectl SATA --port 0 --type hdd --medium "${DRIVE_PATH}.vdi"
+VBoxManage modifyvm "${MACHINE_NAME}" --audio none
 VBoxManage modifyvm "${MACHINE_NAME}" --firmware efi
 VBoxManage modifyvm "${MACHINE_NAME}" --memory "${MACHINE_MEMORY}"
 VBoxManage modifyvm "${MACHINE_NAME}" --nictype1 virtio
