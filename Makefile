@@ -24,11 +24,11 @@ pam:
 
 postgresql:
 	sh bin/postgresql.sh
-	cp etc/back-up-postgresql /usr/local/bin/
+	sudo -u postgres psql -f etc/set-up-postgresql.sql
+	cp etc/back-up-postgresql /home/backups/bin/
 	cp etc/back-up-postgresql.* /etc/systemd/system/
 	systemctl enable back-up-postgresql.timer
 	systemctl start back-up-postgresql.timer
-	sudo -u psql -f etc/set-up-postgresql.sql
 
 .PHONY: users
 users:
