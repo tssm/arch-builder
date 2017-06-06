@@ -36,7 +36,28 @@ mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
 
 echo "Installing..."
-pacstrap /mnt bash dosfstools e2fsprogs filesystem git iproute2 iputils linux-lts linux-lts-headers logrotate make neovim nftables openssh pacman pciutils procps-ng psmisc rsync sed sudo virtualbox-guest-utils-nox
+pacstrap /mnt bash \
+	dosfstools \
+	e2fsprogs \
+	filesystem \
+	git \
+	iproute2 \
+	iputils \
+	linux-lts \
+	linux-lts-headers \
+	logrotate \
+	make \
+	neovim \
+	nftables \
+	openssh \
+	pacman \
+	pciutils \
+	procps-ng \
+	psmisc \
+	rsync \
+	sed \
+	sudo \
+	virtualbox-guest-utils-nox
 
 echo "Now set up this thing!"
 genfstab -pL /mnt >> /mnt/etc/fstab
