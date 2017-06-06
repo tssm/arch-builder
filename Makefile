@@ -49,7 +49,7 @@ services:
 	systemctl set-default multi-user.target
 
 sshd:
-	cp etc/sshd /etc/sshd_config
+	cp etc/sshd /etc/ssh/sshd_config
 
 sudoers:
 	cp etc/sudoers /etc/sudoers
