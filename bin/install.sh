@@ -30,7 +30,7 @@ echo "Creating filesystesm..."
 mkfs.fat /dev/sda1 -F 32 -n ESP
 mkfs.ext4 /dev/sda2 -L System
 
-echo "Mounting filesystems.."
+echo "Mounting filesystems..."
 mount /dev/sda2 /mnt
 mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
