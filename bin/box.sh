@@ -48,6 +48,7 @@ VBoxManage storageattach "${MACHINE_NAME}" --storagectl SATA --port 0 --type hdd
 VBoxManage modifyvm "${MACHINE_NAME}" --audio none
 VBoxManage modifyvm "${MACHINE_NAME}" --firmware efi
 VBoxManage modifyvm "${MACHINE_NAME}" --memory "${MACHINE_MEMORY}"
+VBoxManage modifyvm "${MACHINE_NAME}" --natpf1 "ssh,tcp,,2222,,22"
 VBoxManage modifyvm "${MACHINE_NAME}" --nictype1 virtio
 VBoxManage modifyvm "${MACHINE_NAME}" --rtcuseutc on
 VBoxManage modifyvm "${MACHINE_NAME}" --boot1 disk
