@@ -83,6 +83,7 @@ development: locales network pam securetty services shutdown sshd sudoers system
 	useradd -m -G wheel -s /bin/bash vagrant
 	echo "vagrant:vagrant" | chpasswd
 	echo "root:vagrant" | chpasswd
+	echo "vagrant ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 	mkdir /home/vagrant/.ssh
 	curl https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub -o /home/vagrant/.ssh/authorized_keys
 	chown -R vagrant:vagrant /home/vagrant/.ssh
