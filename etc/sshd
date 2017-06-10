@@ -5,7 +5,6 @@ PasswordAuthentication no
 StrictModes yes
 
 AllowGroups wheel
-AuthorizedKeysFile .ssh/authorized_keys
 PrintLastLog yes
 
 UsePAM yes
