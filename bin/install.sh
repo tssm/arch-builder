@@ -59,8 +59,11 @@ pacstrap /mnt bash \
 	sudo \
 	virtualbox-guest-utils-nox
 
-echo "Now set up this thing!"
-genfstab -pL /mnt >> /mnt/etc/fstab
-# TODO: Write my own optimized fstab in set-up.sh
+genfstab -pL /mnt >> /mnt/etc/fstab # TODO: Write my own optimized fstab in set-up.sh
 
+echo "Now set up this thing!"
 arch-chroot /mnt
+
+echo "Done! Unmounting and rebooting..."
+umount -R /mnt
+systemctl reboot

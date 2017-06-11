@@ -92,4 +92,3 @@ development: locales network pam securetty services shutdown sshd sudoers system
 	echo "blacklist i2c_piix4" > /etc/modprobe.d/i2c_piix4.conf
 	systemctl enable sshd.socket
 	systemctl enable vboxservice
-	echo "Done! Now quit and don't forget to umount -R /mnt before reboot"
