@@ -2,9 +2,9 @@ This is how I like to Arch Linux.
 
 # Usage
 
-Run `make box` or `sh bin/box.sh`. They will ask a series of
-questions in order the create a new virtual machine suitable to
-install Arch Linux. Requires VirtualBox.
+Run `sh create-box.sh`. It will ask a series of questions in
+order the create a new virtual machine suitable to install Arch
+Linux. Requires VirtualBox.
 
 Once the machine is created you need to boot it with an [Arch
 Linux image][arch] attached to an optical drive and then:
@@ -24,9 +24,9 @@ After it the script will leave you on a `chroot` environment. To
 finish the setup you must do the following:
 
 ```bash
-curl -LO https://github.com/tssm/arch-builder/archive/v1.0.tar.gz
-tar -zxvf v1.0.tar.gz
-cd arch-builder-1.0
+curl -LO https://github.com/tssm/arch-builder/archive/v1.1.tar.gz
+tar -zxvf v1.1.tar.gz
+cd arch-builder-1.1
 make development
 ```
 
