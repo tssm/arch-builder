@@ -80,6 +80,7 @@ production: hostname locales packages pam securetty services sshd sudoers syslin
 
 .PHONY: development
 development: locales network pam securetty services shutdown sshd sudoers systemd-boot time
+	pacman -Scc --noconfirm
 	useradd -m -G wheel -s /bin/bash vagrant
 	echo "vagrant:vagrant" | chpasswd
 	echo "root:vagrant" | chpasswd
