@@ -24,9 +24,9 @@ After it the script will leave you on a `chroot` environment. To
 finish the setup you must do the following:
 
 ```bash
-curl -LO https://github.com/tssm/arch-builder/archive/v1.1.tar.gz
-tar -zxvf v1.1.tar.gz
-cd arch-builder-1.1
+curl -LO https://github.com/tssm/arch-builder/archive/v1.1.1.tar.gz
+tar -zxvf v1.1.1.tar.gz
+cd arch-builder-1.1.1
 make development
 ```
 
