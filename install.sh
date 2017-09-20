@@ -1,0 +1,305 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+
+part() {
+	echo "Partitioning..."
+
+	local readonly ALIGNMENT_OFFSET_FILE="/sys/block/sda/queue/alignment_offset"
+	if [[ -f "${ALIGNMENT_OFFSET_FILE}" ]]; then
+		local readonly ALIGNMENT_OFFSET=$(cat ${ALIGNMENT_OFFSET_FILE})
+		local readonly OPTIMAL_IO_SIZE=$(cat /sys/block/sda/queue/optimal_io_size)
+		local readonly PHYSICAL_BLOCK_SIZE=$(cat /sys/block/sda/queue/physical_block_size)
+		local readonly ESP_START=(${OPTIMAL_IO_SIZE}+${ALIGNMENT_OFFSET})/${PHYSICAL_BLOCK_SIZE}
+	else
+		local readonly ESP_START=1
+	fi
+
+	local readonly ESP_SIZE=102
+	parted /dev/sda --script mktable gpt
+	parted /dev/sda --script mkpart primary fat32 ${ESP_START}MiB ${ESP_SIZE}MiB
+	parted /dev/sda --script name 1 esp
+	parted /dev/sda --script set 1 boot on
+	parted /dev/sda --script set 1 esp on
+	parted /dev/sda --script mkpart primary ext4 ${ESP_SIZE}MiB 100%
+	parted /dev/sda --script name 2 system
+}
+
+format() {
+	echo "Creating filesystesm..."
+	mkfs.fat /dev/sda1 -F 32 -n ESP
+	mkfs.ext4 /dev/sda2 -L System
+}
+
+mount() {
+	echo "Mounting filesystems..."
+	command mount /dev/sda2 /mnt
+	mkdir /mnt/boot
+	command mount /dev/sda1 /mnt/boot
+}
+
+install() {
+	echo "Installing..."
+	pacstrap /mnt \
+		bash \
+		dosfstools \
+		e2fsprogs \
+		filesystem \
+		iproute2 \
+		iputils \
+		linux-lts \
+		linux-lts-headers \
+		logrotate \
+		neovim \
+		nftables \
+		openssh \
+		pacman \
+		pciutils \
+		procps-ng \
+		psmisc \
+		sed \
+		sudo \
+		virtualbox-guest-utils-nox
+}
+
+set-hostname() {
+	while :
+	do
+		echo "Enter hostname:"
+		read HOSTNAME
+		if [[ -n "${HOSTNAME}" ]]; then
+			hostnamectl set-hostname ${HOSTNAME}
+			break
+		fi
+	done
+}
+
+set-locales() {
+	echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+	locale-gen
+	echo LANG=en_US.UTF-8 > /etc/locale.conf
+}
+
+set-up-network() {
+	echo "[Match]" > /etc/systemd/network/10-default.network
+	echo "Name=en*" >> /etc/systemd/network/10-default.network
+	echo "[Network]" >> /etc/systemd/network/10-default.network
+	echo "DHCP=yes" >> /etc/systemd/network/10-default.network
+
+	systemctl enable systemd-networkd
+	systemctl enable systemd-resolved
+}
+
+set-time() {
+	while :
+	do
+		echo "Enter time zone:"
+		read TIME_ZONE
+		echo "Enter time sub-zone:"
+		read TIME_SUB_ZONE
+		if [[ -n "${TIME_ZONE}" && -n "${TIME_SUB_ZONE}" ]]; then
+			if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
+				ln -sf /usr/share/zoneinfo/"${TIME_ZONE}"/"${TIME_SUB_ZONE}" /etc/localtime
+			else
+				timedatectl set-timezone "${TIME_ZONE}"/"${TIME_SUB_ZONE}"
+			fi
+			break
+		fi
+	done
+}
+
+set-packages() {
+	# TODO: Make a explicit list of needed packages an remove every package that appears on -Qet but not in that list
+	pacman -Syu --noconfirm \
+		git \
+		gptfdisk \
+		linux-lts \
+		neovim \
+		nftables \
+		python-neovim \
+		rsync \
+		syslinux \
+		xclip
+	pacman -Rns --noconfirm \
+		dhcpcd \
+		diffutils \
+		file \
+		inetutils \
+		grub \
+		haveged \
+		jfsutils \
+		licenses \
+		linux \
+		lvm2 \
+		mdadm \
+		nano \
+		netctl \
+		pcmciautils \
+		reiserfsprogs \
+		s-nail \
+		parted \
+		tar \
+		usbutils \
+		vi \
+		which \
+		xfsprogs
+}
+
+set-up-pam() {
+	echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su
+	echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su-l
+}
+
+set-up-postgresql() {
+	pacman -Syu --noconfirm postgresql
+	echo "es_CL.UTF-8 UTF-8" >> /etc/locale.gen
+	locale-gen
+	sudo -iu postgres initdb \
+		--auth-local peer \
+		--auth-host md5 \
+		--encoding UTF8 \
+		--locale en_US.UTF-8 \
+		--pgdata /var/lib/postgres/data
+	systemctl enable postgresql
+	systemctl start postgresql
+	sudo -u postgres psql -f conf/set-up-postgresql.sql
+	cp conf/back-up-postgresql /home/backups/bin/
+	cp conf/back-up-postgresql.* /etc/systemd/system/
+	systemctl enable back-up-postgresql.timer
+	systemctl start back-up-postgresql.timer
+}
+
+set-users() {
+	useradd backups \
+		--system \
+		--create-home \
+		--user-group \
+		--shell /usr/bin/nologin
+
+	chmod 750 /home/backups
+
+	if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
+		readonly USERNAME=vagrant
+		useradd -m -G wheel -s /bin/bash vagrant
+		echo "vagrant:vagrant" | chpasswd
+		echo "root:vagrant" | chpasswd
+		echo "vagrant ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+		curl --output key.pub \
+			https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub
+	else
+		while :
+		do
+			echo "Enter username:"
+			read USERNAME
+			if [[ -n "${USERNAME}" ]]; then
+				useradd -m -G wheel -s /bin/bash ${USERNAME}
+				gpasswd -a "${USERNAME}" backups
+				passwd ${USERNAME}
+				echo "Let's change the root password:"
+				passwd
+				break
+			fi
+		done
+	fi
+
+	mkdir /home/${USERNAME}/.ssh
+	cp key.pub /home/${USERNAME}/.ssh/authorized_keys
+	chmod 400 /home/${USERNAME}/.ssh/authorized_keys
+	chmod 700 /home/${USERNAME}/.ssh
+	chown ${USERNAME}: -R /home/${USERNAME}/.ssh
+	chattr +i /home/${USERNAME}/.ssh/authorized_keys
+	chattr +i /home/${USERNAME}/.ssh
+}
+
+add-shutdown-command() {
+	cp conf/shutdown /usr/local/bin/shutdown
+	chmod +x /usr/local/bin/shutdown
+}
+
+set-up-securetty() {
+	echo "hvc0" > /etc/securetty
+}
+
+enable-services() {
+	systemctl enable logrotate.timer
+	systemctl enable nftables
+	systemctl enable systemd-timesyncd
+	systemctl set-default multi-user.target
+}
+
+set-up-sshd() {
+	cp conf/sshd /etc/ssh/sshd_config
+}
+
+set-up-sudoers() {
+	cp conf/sudoers /etc/sudoers
+}
+
+set-up-bios-boot() {
+	syslinux-install_update -iam
+	cp conf/syslinux.cfg /boot/syslinux/syslinux.cfg
+}
+
+set-up-uefi-boot() {
+	bootctl --path=/boot install
+	cp conf/loader.conf /boot/loader/loader.conf
+	cp conf/arch.conf /boot/loader/entries/arch.conf
+}
+
+case $1 in
+	new)
+		timedatectl set-ntp true
+		part
+		format
+		mount
+		install
+		genfstab -pL /mnt >> /mnt/etc/fstab
+		# TODO: Write my own optimized fstab
+		cp --recursive conf /mnt/conf
+		export -f add-shutdown-command
+		arch-chroot /mnt /bin/bash -c "add-shutdown-command"
+		export -f set-locales
+		arch-chroot /mnt /bin/bash -c "set-locales"
+		export -f set-time
+		arch-chroot /mnt /bin/bash -c "set-time"
+		export -f set-up-network
+		arch-chroot /mnt /bin/bash -c "set-up-network"
+		export -f set-up-pam
+		arch-chroot /mnt /bin/bash -c "set-up-pam"
+		export -f set-up-securetty
+		arch-chroot /mnt /bin/bash -c "set-up-securetty"
+		export -f set-up-sshd
+		arch-chroot /mnt /bin/bash -c "set-up-sshd"
+		export -f set-up-sudoers
+		arch-chroot /mnt /bin/bash -c "set-up-sudoers"
+		export -f set-up-uefi-boot
+		arch-chroot /mnt /bin/bash -c "set-up-uefi-boot"
+		export -f set-users
+		arch-chroot /mnt /bin/bash -c "set-users"
+		export -f enable-services
+		arch-chroot /mnt /bin/bash -c "enable-services"
+		arch-chroot /mnt echo "blacklist i2c_piix4" > /etc/modprobe.d/i2c_piix4.conf
+		rm --recursive /mnt/conf
+		echo "Done! Rebooting..."
+		systemctl reboot
+		;;
+	production)
+		timedatectl set-ntp true
+		set-hostname
+		set-locales
+		set-packages
+		set-time
+		set-up-pam
+		set-up-securetty
+		set-up-sshd
+		set-up-sudoers
+		set-up-bios-boot
+		set-users
+		enable-services
+		echo "Done!"
+		;;
+	*)
+		# TODO: Add help
+		;;
+esac
