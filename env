@@ -1,0 +1,6 @@
+HOSTNAME=vagrant
+TIME_ZONE=America/Santiago
+USERNAME=vagrant
+USER_PASSWORD=vagrant
+SU_PASSWORD=vagrant
+DESIRED_PKGS="bash ca-certificates dosfstools e2fsprogs filesystem iproute2 iputils logrotate neovim nftables openssh pacman pciutils procps-ng psmisc sed sudo virtualbox-guest-utils-nox"

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+set -o allexport
+source ./env
+set +o allexport
+
 set -o errexit
 set -o nounset
 
@@ -39,40 +43,8 @@ mount() {
 	command mount /dev/sda1 /mnt/boot
 }
 
-install() {
-	echo "Installing..."
-	pacstrap /mnt \
-		bash \
-		dosfstools \
-		e2fsprogs \
-		filesystem \
-		iproute2 \
-		iputils \
-		linux-lts \
-		linux-lts-headers \
-		logrotate \
-		neovim \
-		nftables \
-		openssh \
-		pacman \
-		pciutils \
-		procps-ng \
-		psmisc \
-		sed \
-		sudo \
-		virtualbox-guest-utils-nox
-}
-
 set-hostname() {
-	while :
-	do
-		echo "Enter hostname:"
-		read HOSTNAME
-		if [[ -n "${HOSTNAME}" ]]; then
-			hostnamectl set-hostname ${HOSTNAME}
-			break
-		fi
-	done
+	hostnamectl set-hostname "${HOSTNAME}"
 }
 
 set-locales() {
@@ -92,58 +64,27 @@ set-up-network() {
 }
 
 set-time() {
-	while :
-	do
-		echo "Enter time zone:"
-		read TIME_ZONE
-		echo "Enter time sub-zone:"
-		read TIME_SUB_ZONE
-		if [[ -n "${TIME_ZONE}" && -n "${TIME_SUB_ZONE}" ]]; then
-			if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
-				ln -sf /usr/share/zoneinfo/"${TIME_ZONE}"/"${TIME_SUB_ZONE}" /etc/localtime
-			else
-				timedatectl set-timezone "${TIME_ZONE}"/"${TIME_SUB_ZONE}"
-			fi
-			break
-		fi
-	done
+	if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
+		ln -sf /usr/share/zoneinfo/"${TIME_ZONE}" /etc/localtime
+	else
+		timedatectl set-timezone "${TIME_ZONE}"
+	fi
 }
 
 set-packages() {
-	# TODO: Make a explicit list of needed packages an remove every package that appears on -Qet but not in that list
-	pacman -Syu --noconfirm \
-		git \
-		gptfdisk \
-		linux-lts \
-		neovim \
-		nftables \
-		python-neovim \
-		rsync \
-		syslinux \
-		xclip
-	pacman -Rns --noconfirm \
-		dhcpcd \
-		diffutils \
-		file \
-		inetutils \
-		grub \
-		haveged \
-		jfsutils \
-		licenses \
-		linux \
-		lvm2 \
-		mdadm \
-		nano \
-		netctl \
-		pcmciautils \
-		reiserfsprogs \
-		s-nail \
-		parted \
-		tar \
-		usbutils \
-		vi \
-		which \
-		xfsprogs
+	if [ "$(stat -c %d:%i /)" = "$(stat -c %d:%i /proc/1/root/.)" ]; then
+		while :
+		do
+			DELETE_CANDIDATES=$(pacman -Qet | while read a b; do echo "$a"; done)
+			KEEP=$(echo "$DELETE_CANDIDATES $DESIRED_PKGS" | tr ' ' '\n' | sort | uniq -d)
+			if [ "$KEEP" = "$DELETE_CANDIDATES" ]; then
+				break
+			fi
+			pacman -Rns --noconfirm $(echo "${KEEP} ${DELETE_CANDIDATES}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ')
+		done
+	fi
+
+	pacman -Syu --noconfirm $DESIRED_PKGS
 }
 
 set-up-pam() {
@@ -171,50 +112,35 @@ set-up-postgresql() {
 }
 
 set-users() {
-	useradd backups \
-		--system \
-		--create-home \
-		--user-group \
-		--shell /usr/bin/nologin
-
-	chmod 750 /home/backups
-
-	if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
-		readonly USERNAME=vagrant
-		useradd -m -G wheel -s /bin/bash vagrant
-		echo "vagrant:vagrant" | chpasswd
-		echo "root:vagrant" | chpasswd
-		echo "vagrant ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-		curl --output key.pub \
-			https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub
-	else
-		while :
-		do
-			echo "Enter username:"
-			read USERNAME
-			if [[ -n "${USERNAME}" ]]; then
-				useradd -m -G wheel -s /bin/bash ${USERNAME}
-				gpasswd -a "${USERNAME}" backups
-				passwd ${USERNAME}
-				echo "Let's change the root password:"
-				passwd
-				break
-			fi
-		done
+	if [ $(id -u backups > /dev/null 2>&1; echo $?) -eq 1 ]; then
+		useradd backups \
+			--system \
+			--create-home \
+			--user-group \
+			--shell /usr/bin/nologin
+		chmod 750 /home/backups
 	fi
 
-	mkdir /home/${USERNAME}/.ssh
-	cp key.pub /home/${USERNAME}/.ssh/authorized_keys
-	chmod 400 /home/${USERNAME}/.ssh/authorized_keys
-	chmod 700 /home/${USERNAME}/.ssh
-	chown ${USERNAME}: -R /home/${USERNAME}/.ssh
-	chattr +i /home/${USERNAME}/.ssh/authorized_keys
-	chattr +i /home/${USERNAME}/.ssh
-}
+	if [ $(id -u "$USERNAME" > /dev/null 2>&1; echo $?) -eq 1 ]; then
+		useradd -m -G wheel -s /bin/bash ${USERNAME}
+		gpasswd -a "${USERNAME}" backups
+		echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
+		echo "root:${SU_PASSWORD}" | chpasswd
 
-add-shutdown-command() {
-	cp conf/shutdown /usr/local/bin/shutdown
-	chmod +x /usr/local/bin/shutdown
+		if ["$USERNAME" = vagrant]; then
+			echo "vagrant ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+			curl --output key.pub \
+				https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub
+		fi
+
+		mkdir /home/${USERNAME}/.ssh
+		cp key.pub /home/${USERNAME}/.ssh/authorized_keys
+		chmod 400 /home/${USERNAME}/.ssh/authorized_keys
+		chmod 700 /home/${USERNAME}/.ssh
+		chown ${USERNAME}: -R /home/${USERNAME}/.ssh
+		chattr +i /home/${USERNAME}/.ssh/authorized_keys
+		chattr +i /home/${USERNAME}/.ssh
+	fi
 }
 
 set-up-securetty() {
@@ -236,15 +162,16 @@ set-up-sudoers() {
 	cp conf/sudoers /etc/sudoers
 }
 
-set-up-bios-boot() {
-	syslinux-install_update -iam
-	cp conf/syslinux.cfg /boot/syslinux/syslinux.cfg
-}
-
-set-up-uefi-boot() {
-	bootctl --path=/boot install
-	cp conf/loader.conf /boot/loader/loader.conf
-	cp conf/arch.conf /boot/loader/entries/arch.conf
+set-up-bootloader() {
+	if [ -d /sys/firmware/efi ]; then
+		bootctl --path=/boot install
+		cp conf/loader.conf /boot/loader/loader.conf
+		cp conf/arch.conf /boot/loader/entries/arch.conf
+	else
+		pacman -S --noconfirm syslinux
+		syslinux-install_update -iam
+		cp conf/syslinux.cfg /boot/syslinux/syslinux.cfg
+	fi
 }
 
 case $1 in
@@ -253,12 +180,10 @@ case $1 in
 		part
 		format
 		mount
-		install
+		set-packages
 		genfstab -pL /mnt >> /mnt/etc/fstab
 		# TODO: Write my own optimized fstab
 		cp --recursive conf /mnt/conf
-		export -f add-shutdown-command
-		arch-chroot /mnt /bin/bash -c "add-shutdown-command"
 		export -f set-locales
 		arch-chroot /mnt /bin/bash -c "set-locales"
 		export -f set-time
@@ -273,8 +198,8 @@ case $1 in
 		arch-chroot /mnt /bin/bash -c "set-up-sshd"
 		export -f set-up-sudoers
 		arch-chroot /mnt /bin/bash -c "set-up-sudoers"
-		export -f set-up-uefi-boot
-		arch-chroot /mnt /bin/bash -c "set-up-uefi-boot"
+		export -f set-up-bootloader
+		arch-chroot /mnt /bin/bash -c "set-up-bootloader"
 		export -f set-users
 		arch-chroot /mnt /bin/bash -c "set-users"
 		export -f enable-services
@@ -284,7 +209,7 @@ case $1 in
 		echo "Done! Rebooting..."
 		systemctl reboot
 		;;
-	production)
+	vm)
 		timedatectl set-ntp true
 		set-hostname
 		set-locales
@@ -294,7 +219,7 @@ case $1 in
 		set-up-securetty
 		set-up-sshd
 		set-up-sudoers
-		set-up-bios-boot
+		set-up-bootloader
 		set-users
 		enable-services
 		echo "Done!"
