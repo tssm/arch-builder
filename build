@@ -118,7 +118,8 @@ set-users() {
 			--create-home \
 			--user-group \
 			--shell /usr/bin/nologin
-		chmod 750 /home/backups
+		mkdir /home/backups/bin
+		chmod 750 --recursive /home/backups
 	fi
 
 	if [ $(id -u "$USERNAME" > /dev/null 2>&1; echo $?) -eq 1 ]; then
