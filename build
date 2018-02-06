@@ -96,15 +96,19 @@ set-up-postgresql() {
 	pacman -Syu --noconfirm postgresql
 	echo "es_CL.UTF-8 UTF-8" >> /etc/locale.gen
 	locale-gen
-	sudo -iu postgres initdb \
+	sudo --user postgres initdb \
 		--auth-local peer \
-		--auth-host md5 \
+		--auth-host scram-sha-256 \
 		--encoding UTF8 \
 		--locale en_US.UTF-8 \
-		--pgdata /var/lib/postgres/data
+		--pgdata /var/lib/postgres/data \
+		--user $USERNAME
 	systemctl enable postgresql
 	systemctl start postgresql
-	sudo -u postgres psql -f conf/set-up-postgresql.sql
+	sudo --user $USERNAME psql \
+		--dbname postgres \
+		--file conf/set-up-postgresql.sql \
+		--username $USERNAME
 	cp conf/back-up-postgresql /home/backups/bin/
 	cp conf/back-up-postgresql.* /etc/systemd/system/
 	systemctl enable back-up-postgresql.timer
@@ -176,6 +180,9 @@ set-up-bootloader() {
 }
 
 case $1 in
+	postgresql)
+		set-up-postgresql
+		;;
 	new)
 		timedatectl set-ntp true
 		part
