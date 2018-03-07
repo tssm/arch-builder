@@ -132,8 +132,7 @@ set-users() {
 		echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 		echo "root:${SU_PASSWORD}" | chpasswd
 
-		if ["$USERNAME" = vagrant]; then
-			echo "vagrant ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+		if [ "$USERNAME" = vagrant ]; then
 			curl --output key.pub \
 				https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub
 		fi
@@ -165,6 +164,10 @@ set-up-sshd() {
 
 set-up-sudoers() {
 	cp conf/sudoers /etc/sudoers
+
+	if [ "$USERNAME" = vagrant ]; then
+		echo "vagrant ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+	fi
 }
 
 set-up-bootloader() {
