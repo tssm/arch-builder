@@ -128,7 +128,6 @@ set-users() {
 
 	if [ $(id -u "$USERNAME" > /dev/null 2>&1; echo $?) -eq 1 ]; then
 		useradd -m -G wheel -s /bin/bash ${USERNAME}
-		gpasswd -a "${USERNAME}" backups
 		echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 		echo "root:${SU_PASSWORD}" | chpasswd
 
@@ -145,6 +144,9 @@ set-users() {
 		chattr +i /home/${USERNAME}/.ssh/authorized_keys
 		chattr +i /home/${USERNAME}/.ssh
 	fi
+
+	gpasswd -a "${USERNAME}" backups
+	gpasswd -a "${USERNAME}" wheel
 }
 
 set-up-securetty() {
