@@ -179,6 +179,10 @@ set-up-bootloader() {
 		pacman -S --noconfirm syslinux
 		syslinux-install_update -iam
 		cp conf/syslinux.cfg /boot/syslinux/syslinux.cfg
+		sed \
+			--in-place \
+			--expression "s/BOOT_PARTITION/${BOOT_PARTITION}/g" \
+			/boot/syslinux/syslinux.cfg
 	fi
 }
 
