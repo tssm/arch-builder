@@ -97,8 +97,6 @@ set-up-postgresql() {
 	echo "es_CL.UTF-8 UTF-8" >> /etc/locale.gen
 	locale-gen
 	sudo --user postgres initdb \
-		--auth-local peer \
-		--auth-host scram-sha-256 \
 		--encoding UTF8 \
 		--locale en_US.UTF-8 \
 		--pgdata /var/lib/postgres/data \
