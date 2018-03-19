@@ -153,6 +153,7 @@ set-up-securetty() {
 
 enable-services() {
 	systemctl enable logrotate.timer
+	cp conf/nftables.conf /etc/nftables.conf
 	systemctl enable nftables
 	systemctl enable systemd-timesyncd
 	systemctl set-default multi-user.target
