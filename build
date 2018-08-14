@@ -96,7 +96,7 @@ set-up-postgresql() {
 	pacman -Syu --noconfirm postgresql
 	echo "es_CL.UTF-8 UTF-8" >> /etc/locale.gen
 	locale-gen
-	sudo --user postgres initdb \
+	sudo --login --user postgres initdb \
 		--auth-local peer \
 		--auth-host scram-sha-256 \
 		--encoding UTF8 \
