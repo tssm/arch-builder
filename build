@@ -11,22 +11,22 @@ part() {
 	echo "Partitioning..."
 
 	local readonly ALIGNMENT_OFFSET_FILE="/sys/block/sda/queue/alignment_offset"
-	if [[ -f "${ALIGNMENT_OFFSET_FILE}" ]]; then
-		local readonly ALIGNMENT_OFFSET=$(cat ${ALIGNMENT_OFFSET_FILE})
-		local readonly OPTIMAL_IO_SIZE=$(cat /sys/block/sda/queue/optimal_io_size)
-		local readonly PHYSICAL_BLOCK_SIZE=$(cat /sys/block/sda/queue/physical_block_size)
-		local readonly ESP_START=(${OPTIMAL_IO_SIZE}+${ALIGNMENT_OFFSET})/${PHYSICAL_BLOCK_SIZE}
+	if [ -f "$ALIGNMENT_OFFSET_FILE" ]; then
+		local readonly ALIGNMENT_OFFSET="$(cat ${ALIGNMENT_OFFSET_FILE})"
+		local readonly OPTIMAL_IO_SIZE="$(cat /sys/block/sda/queue/optimal_io_size)"
+		local readonly PHYSICAL_BLOCK_SIZE="$(cat /sys/block/sda/queue/physical_block_size)"
+		local declare -ir ESP_START=("$OPTIMAL_IO_SIZE"+"$ALIGNMENT_OFFSET")/"$PHYSICAL_BLOCK_SIZE"
 	else
 		local readonly ESP_START=1
 	fi
 
 	local readonly ESP_SIZE=102
 	parted /dev/sda --script mktable gpt
-	parted /dev/sda --script mkpart primary fat32 ${ESP_START}MiB ${ESP_SIZE}MiB
+	parted /dev/sda --script "mkpart primary fat32 ${ESP_START}MiB ${ESP_SIZE}MiB"
 	parted /dev/sda --script name 1 esp
 	parted /dev/sda --script set 1 boot on
 	parted /dev/sda --script set 1 esp on
-	parted /dev/sda --script mkpart primary ext4 ${ESP_SIZE}MiB 100%
+	parted /dev/sda --script "mkpart primary ext4 ${ESP_SIZE}MiB 100%"
 	parted /dev/sda --script name 2 system
 }
 
@@ -44,7 +44,7 @@ mount() {
 }
 
 set-hostname() {
-	hostnamectl set-hostname "${HOSTNAME}"
+	hostnamectl set-hostname "$HOSTNAME"
 }
 
 set-locales() {
@@ -64,27 +64,31 @@ set-up-network() {
 }
 
 set-time() {
-	if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
-		ln -sf /usr/share/zoneinfo/"${TIME_ZONE}" /etc/localtime
-	else
-		timedatectl set-timezone "${TIME_ZONE}"
-	fi
+	# if [ -z ${TIME_ZONE+X} ]; then
+		if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
+			ln -sf "/usr/share/zoneinfo/${TIME_ZONE}" /etc/localtime
+		else
+			timedatectl set-timezone "$TIME_ZONE"
+		fi
+	# fi
 }
 
 set-packages() {
 	if [ "$(stat -c %d:%i /)" = "$(stat -c %d:%i /proc/1/root/.)" ]; then
 		while :
 		do
-			DELETE_CANDIDATES=$(pacman -Qet | while read a b; do echo "$a"; done)
-			KEEP=$(echo "$DELETE_CANDIDATES $DESIRED_PKGS" | tr ' ' '\n' | sort | uniq -d)
+			local readonly DELETE_CANDIDATES="$(pacman -Qet | while read a b; do echo "$a"; done)"
+			local readonly KEEP="$(echo "${DELETE_CANDIDATES} ${DESIRED_PKGS}" | tr ' ' '\n' | sort | uniq -d)"
 			if [ "$KEEP" = "$DELETE_CANDIDATES" ]; then
 				break
 			fi
 			pacman -Rns --noconfirm $(echo "${KEEP} ${DELETE_CANDIDATES}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ')
 		done
+
+		pacman -Syu --noconfirm $DESIRED_PKGS
 	fi
 
-	pacman -Syu --noconfirm $DESIRED_PKGS
+	pacstrap /mnt $DESIRED_PKGS
 }
 
 set-up-pam() {
@@ -102,13 +106,13 @@ set-up-postgresql() {
 		--encoding UTF8 \
 		--locale en_US.UTF-8 \
 		--pgdata /var/lib/postgres/data \
-		--user $USERNAME
+		--user "$USERNAME"
 	systemctl enable postgresql
 	systemctl start postgresql
-	sudo --user $USERNAME psql \
+	sudo --user "$USERNAME" psql \
 		--dbname postgres \
 		--file conf/set-up-postgresql.sql \
-		--username $USERNAME
+		--username "$USERNAME"
 	cp conf/back-up-postgresql /home/backups/bin/
 	cp conf/back-up-postgresql.* /etc/systemd/system/
 	systemctl enable back-up-postgresql.timer
@@ -116,7 +120,7 @@ set-up-postgresql() {
 }
 
 set-users() {
-	if [ $(id -u backups > /dev/null 2>&1; echo $?) -eq 1 ]; then
+	if [ "$(id -u backups > /dev/null 2>&1; echo $?)" -eq 1 ]; then
 		useradd backups \
 			--system \
 			--create-home \
@@ -126,9 +130,9 @@ set-users() {
 		chmod 750 --recursive /home/backups
 	fi
 
-	if [ $(id -u "$USERNAME" > /dev/null 2>&1; echo $?) -eq 1 ]; then
-		useradd -m -G wheel -s /bin/bash ${USERNAME}
-		gpasswd -a "${USERNAME}" backups
+	if [ "$(id -u ${USERNAME} > /dev/null 2>&1; echo $?)" -eq 1 ]; then
+		useradd -m -G wheel -s /bin/bash "$USERNAME"
+		gpasswd -a "$USERNAME" backups
 		echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 		echo "root:${SU_PASSWORD}" | chpasswd
 
@@ -137,13 +141,13 @@ set-users() {
 				https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub
 		fi
 
-		mkdir /home/${USERNAME}/.ssh
-		cp key.pub /home/${USERNAME}/.ssh/authorized_keys
-		chmod 400 /home/${USERNAME}/.ssh/authorized_keys
-		chmod 700 /home/${USERNAME}/.ssh
-		chown ${USERNAME}: -R /home/${USERNAME}/.ssh
-		chattr +i /home/${USERNAME}/.ssh/authorized_keys
-		chattr +i /home/${USERNAME}/.ssh
+		mkdir "/home/${USERNAME}/.ssh"
+		cp key.pub "/home/${USERNAME}/.ssh/authorized_keys"
+		chmod 400 "/home/${USERNAME}/.ssh/authorized_keys"
+		chmod 700 "/home/${USERNAME}/.ssh"
+		chown "${USERNAME}:" --recursive "/home/${USERNAME}/.ssh"
+		chattr +i "/home/${USERNAME}/.ssh/authorized_keys"
+		chattr +i "/home/${USERNAME}/.ssh"
 	fi
 }
 
