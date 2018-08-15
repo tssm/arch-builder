@@ -10,8 +10,8 @@ Once the machine is created you need to boot it with an [Arch
 Linux image][arch] attached to an optical drive and then:
 
 ```bash
-curl -LO https://github.com/tssm/arch-builder/archive/v3.0.tar.gz
-tar -zxvf v3.0.tar.gz
+curl -LO https://github.com/tssm/arch-builder/archive/v3.1.tar.gz
+tar -zxvf v3.1.tar.gz
 cd arch-builder-3.0
 # Edit the env file as desired
 ./build new

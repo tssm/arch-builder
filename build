@@ -10,19 +10,9 @@ set -o nounset
 part() {
 	echo "Partitioning..."
 
-	local readonly ALIGNMENT_OFFSET_FILE="/sys/block/sda/queue/alignment_offset"
-	if [ -f "$ALIGNMENT_OFFSET_FILE" ]; then
-		local readonly ALIGNMENT_OFFSET="$(cat ${ALIGNMENT_OFFSET_FILE})"
-		local readonly OPTIMAL_IO_SIZE="$(cat /sys/block/sda/queue/optimal_io_size)"
-		local readonly PHYSICAL_BLOCK_SIZE="$(cat /sys/block/sda/queue/physical_block_size)"
-		local declare -ir ESP_START=($OPTIMAL_IO_SIZE+$ALIGNMENT_OFFSET)/$PHYSICAL_BLOCK_SIZE
-	else
-		local readonly ESP_START=1
-	fi
-
 	local readonly ESP_SIZE=102
 	parted /dev/sda --script mktable gpt
-	parted /dev/sda --script "mkpart primary fat32 ${ESP_START}MiB ${ESP_SIZE}MiB"
+	parted /dev/sda --script "mkpart primary fat32 0% ${ESP_SIZE}MiB"
 	parted /dev/sda --script name 1 esp
 	parted /dev/sda --script set 1 boot on
 	parted /dev/sda --script set 1 esp on
