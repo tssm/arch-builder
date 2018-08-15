@@ -2,7 +2,7 @@ This is how I like to Arch Linux.
 
 # Usage
 
-Run `build-box`. It will ask a series of questions in
+Run `create-box`. It will ask a series of questions in
 order the create a new virtual machine suitable to install Arch
 Linux. Requires VirtualBox.
 
@@ -10,9 +10,9 @@ Once the machine is created you need to boot it with an [Arch
 Linux image][arch] attached to an optical drive and then:
 
 ```bash
-curl -LO https://github.com/tssm/arch-builder/archive/v2.0.tar.gz
-tar -zxvf v2.0.tar.gz
-cd arch-builder-2.0
+curl -LO https://github.com/tssm/arch-builder/archive/v3.0.tar.gz
+tar -zxvf v3.0.tar.gz
+cd arch-builder-3.0
 # Edit the env file as desired
 ./build new
 ```
