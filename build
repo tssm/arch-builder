@@ -54,8 +54,8 @@ set-up-network() {
 }
 
 set-time() {
-	if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
-		ln -sf "/usr/share/zoneinfo/${TIME_ZONE}" /etc/localtime
+	if [ "$(stat --format %d:%i /)" != "$(stat --format %d:%i /proc/1/root/.)" ]; then
+		ln --force --symbolic "/usr/share/zoneinfo/${TIME_ZONE}" /etc/localtime
 	else
 		timedatectl set-timezone "$TIME_ZONE"
 	fi
@@ -66,18 +66,18 @@ set-packages() {
 		install)
 			pacstrap /mnt $DESIRED_PKGS
 			;;
-		set-up)
+		clean-up)
 			while :
 			do
-				local readonly DELETE_CANDIDATES="$(pacman -Qet | while read a b; do echo "$a"; done)"
-				local readonly KEEP="$(echo "${DELETE_CANDIDATES} ${DESIRED_PKGS}" | tr ' ' '\n' | sort | uniq -d)"
+				local readonly DELETE_CANDIDATES="$(pacman --query --explicit --unrequired | while read a b; do echo "$a"; done)"
+				local readonly KEEP="$(echo "${DELETE_CANDIDATES} ${DESIRED_PKGS}" | tr ' ' '\n' | sort | uniq --repeated)"
 				if [ "$KEEP" = "$DELETE_CANDIDATES" ]; then
 					break
 				fi
-				pacman -Rns --noconfirm $(echo "${KEEP} ${DELETE_CANDIDATES}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ')
+				pacman --remove --nosave --recursive --noconfirm $(echo "${KEEP} ${DELETE_CANDIDATES}" | tr ' ' '\n' | sort | uniq --unique | tr '\n' ' ')
 			done
 
-			pacman -Syu --noconfirm $DESIRED_PKGS
+			pacman --sync --refresh --sysupgrade --noconfirm $DESIRED_PKGS
 			;;
 	esac
 }
@@ -88,7 +88,7 @@ set-up-pam() {
 }
 
 set-up-postgresql() {
-	pacman -Syu --noconfirm postgresql
+	pacman --sync --refresh --sysupgrade --noconfirm postgresql
 	echo "es_CL.UTF-8 UTF-8" >> /etc/locale.gen
 	locale-gen
 	sudo --login --user postgres initdb \
@@ -109,7 +109,7 @@ set-up-postgresql() {
 }
 
 set-users() {
-	if [ "$(id -u backups > /dev/null 2>&1; echo $?)" -eq 1 ]; then
+	if [ "$(id --user backups > /dev/null 2>&1; echo $?)" -eq 1 ]; then
 		useradd backups \
 			--system \
 			--create-home \
@@ -119,9 +119,9 @@ set-users() {
 		chmod 750 --recursive /home/backups
 	fi
 
-	if [ "$(id -u "$USERNAME" > /dev/null 2>&1; echo $?)" -eq 1 ]; then
-		useradd -m -G wheel -s /bin/bash "$USERNAME"
-		gpasswd -a "$USERNAME" backups
+	if [ "$(id --user "$USERNAME" > /dev/null 2>&1; echo $?)" -eq 1 ]; then
+		useradd --create-home --groups wheel --shell /bin/bash "$USERNAME"
+		gpasswd --add "$USERNAME" backups
 		echo "${USERNAME}:${USER_PASSWORD}" | chpasswd
 		echo "root:${SU_PASSWORD}" | chpasswd
 
@@ -139,8 +139,8 @@ set-users() {
 		chattr +i "/home/${USERNAME}/.ssh"
 	fi
 
-	gpasswd -a "$USERNAME" backups
-	gpasswd -a "$USERNAME" wheel
+	gpasswd --add "$USERNAME" backups
+	gpasswd --add "$USERNAME" wheel
 }
 
 set-up-securetty() {
@@ -173,7 +173,7 @@ set-up-bootloader() {
 		cp conf/loader.conf /boot/loader/loader.conf
 		cp conf/arch.conf /boot/loader/entries/arch.conf
 	else
-		pacman -S --noconfirm syslinux
+		pacman --sync --noconfirm syslinux
 		syslinux-install_update -iam
 		cp conf/syslinux.cfg /boot/syslinux/syslinux.cfg
 		sed \
