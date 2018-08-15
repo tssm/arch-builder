@@ -65,26 +65,31 @@ set-up-network() {
 
 set-time() {
 	if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ]; then
-		ln -sf /usr/share/zoneinfo/"${TIME_ZONE}" /etc/localtime
+		ln -sf "/usr/share/zoneinfo/${TIME_ZONE}" /etc/localtime
 	else
-		timedatectl set-timezone "${TIME_ZONE}"
+		timedatectl set-timezone "$TIME_ZONE"
 	fi
 }
 
 set-packages() {
-	if [ "$(stat -c %d:%i /)" = "$(stat -c %d:%i /proc/1/root/.)" ]; then
-		while :
-		do
-			DELETE_CANDIDATES=$(pacman -Qet | while read a b; do echo "$a"; done)
-			KEEP=$(echo "$DELETE_CANDIDATES $DESIRED_PKGS" | tr ' ' '\n' | sort | uniq -d)
-			if [ "$KEEP" = "$DELETE_CANDIDATES" ]; then
-				break
-			fi
-			pacman -Rns --noconfirm $(echo "${KEEP} ${DELETE_CANDIDATES}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ')
-		done
-	fi
+	case "$1" in
+		install)
+			pacstrap /mnt $DESIRED_PKGS
+			;;
+		set-up)
+			while :
+			do
+				local readonly DELETE_CANDIDATES="$(pacman -Qet | while read a b; do echo "$a"; done)"
+				local readonly KEEP="$(echo "${DELETE_CANDIDATES} ${DESIRED_PKGS}" | tr ' ' '\n' | sort | uniq -d)"
+				if [ "$KEEP" = "$DELETE_CANDIDATES" ]; then
+					break
+				fi
+				pacman -Rns --noconfirm $(echo "${KEEP} ${DELETE_CANDIDATES}" | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ')
+			done
 
-	pacman -Syu --noconfirm $DESIRED_PKGS
+			pacman -Syu --noconfirm $DESIRED_PKGS
+			;;
+	esac
 }
 
 set-up-pam() {
@@ -196,7 +201,7 @@ case $1 in
 		part
 		format
 		mount
-		set-packages
+		set-packages install
 		genfstab -pL /mnt >> /mnt/etc/fstab
 		# TODO: Write my own optimized fstab
 		cp --recursive conf /mnt/conf
@@ -229,7 +234,7 @@ case $1 in
 		timedatectl set-ntp true
 		set-hostname
 		set-locales
-		set-packages
+		set-packages clean-up
 		set-time
 		set-up-pam
 		set-up-securetty
