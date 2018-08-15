@@ -3,5 +3,5 @@ TIME_ZONE=America/Santiago
 USERNAME=vagrant
 USER_PASSWORD=vagrant
 SU_PASSWORD=vagrant
-DESIRED_PKGS="bash ca-certificates dosfstools e2fsprogs filesystem iproute2 iputils logrotate neovim nftables openssh pacman pciutils procps-ng psmisc sed sudo virtualbox-guest-utils-nox"
+DESIRED_PKGS="bash ca-certificates dosfstools e2fsprogs filesystem iproute2 iputils linux logrotate neovim nftables openssh pacman pciutils procps-ng psmisc sed sudo systemd virtualbox-guest-utils-nox"
 BOOT_PARTITION=sda2
